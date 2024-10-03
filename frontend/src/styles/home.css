@@ -1,0 +1,122 @@
+/* Global Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f8ff;
+    /* Light blue background */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Container Styles */
+.container {
+    position: relative;
+    /* Set position relative to allow absolute positioning inside */
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    width: 100%;
+    max-width: 600px;
+}
+
+/* Title */
+h1 {
+    color: #1e3a8a;
+    /* Dark blue */
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Error Message */
+.text-red-500 {
+    color: #dc2626;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Form Styles */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Label Styles */
+label {
+    font-weight: bold;
+    color: #1e3a8a;
+}
+
+/* Input Styles */
+input {
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    padding: 0.75rem;
+    width: 100%;
+    font-size: 1rem;
+    color: #1f2937;
+    background-color: #f9fafb;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+input:focus {
+    border-color: #3b82f6;
+    /* Blue on focus */
+}
+
+/* DatePicker Styles */
+.react-datepicker__day--highlighted {
+    background-color: #bfdbfe;
+    /* Light blue highlight */
+    color: #1e3a8a;
+}
+
+.react-datepicker__day:hover {
+    background-color: #93c5fd;
+    /* Lighter blue on hover */
+}
+
+/* Selected Dates */
+ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+    color: #1e3a8a;
+}
+
+/* Button Styles */
+button {
+    background-color: #1e3a8a;
+    /* Dark blue */
+    color: #ffffff;
+    padding: 0.75rem;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #3b82f6;
+}
+
+button:disabled {
+    background-color: #93c5fd;
+
+    cursor: not-allowed;
+}
+
+/* COE Button Styles */
+.coe {
+    position: absolute;
+    top: 1rem;
+
+    right: 1rem;
+
+}
