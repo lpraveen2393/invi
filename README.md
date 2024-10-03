@@ -54,18 +54,4 @@ Invi is a web application to allocate exam duties for staffs
 
    The frontend should now be running at `http://localhost:3000`.
 
-## Folder Structure
-
-```bash
-invi/
-│
-├── backend/            # Backend code (Node.js, Express)
-│   └── server.js       # Main entry point for the backend server
-│
-├── frontend/           # Frontend code (React)
-│   ├── src/
-│   └── public/
-│
-└── README.md           # Project documentation
-
 This `README.md` is structured to guide users through setting up and running your project locally, providing an overview of the MERN stack and clear instructions for installation.
