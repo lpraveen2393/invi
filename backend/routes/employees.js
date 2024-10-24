@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const Employee = require('../models/Employee');
+const { normalizeDate } = require('../utils/normDates');
 
 // Update employee unavailable dates by ID
 router.put('/', async (req, res) => {
     console.log(req.body)
     const empid = req.body.employeeId
-    const unavailableDates = req.body.unavailableDates;
+    const unavailableDates = normalizeDate(req.body.unavailableDates);
+
 
     try {
         const employee = await Employee.findOneAndUpdate(
