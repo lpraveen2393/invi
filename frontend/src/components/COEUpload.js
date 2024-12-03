@@ -66,7 +66,7 @@ const CSVUpload = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label htmlFor="csvFile" className="block text-sm font-medium text-gray-700">
-                        Upload CSV File
+                        EXAM SCHEDULE BY COE
                     </label>
                     <input
                         type="file"

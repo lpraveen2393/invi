@@ -1,9 +1,8 @@
-// routes/dutyAssignment.js
-
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const cors = require('cors');
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
 const Employee = require('../models/Employee');
 const { normalizeDate } = require('../utils/normDates');
@@ -19,6 +18,25 @@ router.post('/', async (req, res) => {
 
         if (!Array.isArray(csvData)) {
             return res.status(400).json({ message: 'Invalid data format: Expected an array of records.' });
+        }
+
+        const csvDates = csvData.map(row => normalizeDate(row['Date']));
+        const csvEarliestDate = new Date(Math.min(...csvDates));
+        const csvLatestDate = new Date(Math.max(...csvDates));
+
+        // Check if any duty dates exist in the database
+        const existingDutyDates = await Employee.find({ dutyDates: { $exists: true, $ne: [] } });
+
+        let earliestDate, endDate;
+        if (existingDutyDates.length > 0) {
+            // If duty dates exist, find the earliest and latest from database
+            const dbDates = existingDutyDates.flatMap(emp => emp.dutyDates);
+            earliestDate = new Date(Math.min(...dbDates));
+            endDate = new Date(Math.max(...dbDates));
+        } else {
+            // If no duty dates, use CSV dates
+            earliestDate = csvEarliestDate;
+            endDate = csvLatestDate;
         }
 
         for (const [index, row] of csvData.entries()) {
@@ -46,25 +64,80 @@ router.post('/', async (req, res) => {
             await assignDuties(examDate, maxDuties);
         }
 
-        res.json({ message: 'CSV data processed and duties assigned successfully' });
+        await generateDutyScheduleCSV(earliestDate, endDate);
+
+        res.json({
+            message: 'Duties assigned and CSV file generated successfully',
+            filePath: 'employee_duty_schedule.csv'
+        });
     } catch (error) {
-        console.error('Error processing CSV:', error);
+        console.error('Error processing duties:', error);
         res.status(500).json({ message: 'Internal server error: ' + error.message });
     }
 });
 
+const generateDutyScheduleCSV = async (startDate, endDate) => {
+    const employees = await Employee.find({});
+    const dateRange = [];
+    let currentDate = new Date(startDate);
+
+    while (currentDate <= endDate) {
+        // Format date as DD-MM-YYYY
+        const formattedDate = currentDate.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).replace(/\//g, '-');
+
+        dateRange.push(formattedDate);
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    const csvData = employees.map(emp => {
+        const row = {
+            empCode: emp._id.toString(),
+            empName: emp.name
+        };
+
+        dateRange.forEach(date => {
+            // Convert date to YYYY-MM-DD for comparison
+            const [day, month, year] = date.split('-');
+            const comparisonDate = `${year}-${month}-${day}`;
+
+            row[date] = emp.dutyDates.some(dutyDate =>
+                dutyDate.toISOString().split('T')[0] === comparisonDate
+            ) ? 'Yes' : 'No';
+        });
+
+        return row;
+    });
+
+    const headers = [
+        { id: 'empCode', title: 'Employee Code' },
+        { id: 'empName', title: 'Employee Name' },
+        ...dateRange.map(date => ({ id: date, title: date }))
+    ];
+
+    const csvWriter = createCsvWriter({
+        path: 'employee_duty_schedule.csv',
+        header: headers
+    });
+
+    await csvWriter.writeRecords(csvData);
+
+    console.log('CSV file created successfully: employee_duty_schedule.csv');
+    return 'employee_duty_schedule.csv';
+};
+
 const assignDuties = async (date, requiredDuties) => {
     const assignedDuties = [];
-
     const startOfDay = new Date(date);
     startOfDay.setUTCHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
     endOfDay.setUTCHours(23, 59, 59, 999);
 
-    // Find eligible employees
     const eligibleEmployees = await Employee.find({
         maxDuties: { $gt: 0 },
-        // $expr: { $lt: ["$assignedDuties", "$maxDuties"] }, // Compare assignedDuties with maxDuties
         unavailableDates: {
             $not: {
                 $elemMatch: {
@@ -81,18 +154,15 @@ const assignDuties = async (date, requiredDuties) => {
                 }
             }
         }
-    }).sort({ assignedDuties: 1 });  // Sort by least assigned duties
-
-    console.log(`Found ${eligibleEmployees.length} eligible employees for date ${date.toISOString().split('T')[0]}`);
+    }).sort({ assignedDuties: 1 });
 
     const employeesToUpdate = [];
+    const dateString = date.toLocaleDateString('en-GB').replace(/\//g, '-');
 
     for (let i = 0; i < requiredDuties; i++) {
         if (eligibleEmployees.length > 0) {
-            // Select the first eligible employee (least assigned duties)
             const selectedEmployee = eligibleEmployees.shift();
 
-            // Prepare the update
             employeesToUpdate.push({
                 updateOne: {
                     filter: { _id: selectedEmployee._id },
@@ -104,37 +174,30 @@ const assignDuties = async (date, requiredDuties) => {
             });
 
             assignedDuties.push(selectedEmployee);
+
             console.log(`
-==================================================================
-  🎯 Duty Assignment  DATE:${date.toISOString().split('T')[0]}
-==================================================================
-    👤 Employee ID : ${selectedEmployee._id}
-    🧑‍💼 Employee Name : ${selectedEmployee.name}
-    📅 DUTY Date: ${date.toISOString().split('T')[0]}
-==================================================================
-`);
+            =========================
+            🎉 Duty Assignment 🎉
+            -------------------------
+            📅 Date: ${dateString}
+            👤 Employee: ${selectedEmployee.name}
+            🔢 Emp Code: ${selectedEmployee._id}
+            ✅ Status: Assigned
+            =========================
+            `);
 
-
-
-            // If the employee hasn't reached their max duties, move them to the end of the list
             if (selectedEmployee.assignedDuties + 1 < selectedEmployee.maxDuties) {
                 selectedEmployee.assignedDuties += 1;
                 eligibleEmployees.push(selectedEmployee);
             }
         } else {
-            console.log(`No eligible employees left for date ${date.toISOString().split('T')[0]}`);
+            console.log(`⚠️ No eligible employees left for date ${dateString}`);
             break;
         }
     }
 
     if (employeesToUpdate.length > 0) {
         await Employee.bulkWrite(employeesToUpdate);
-    }
-
-    if (assignedDuties.length === requiredDuties) {
-        console.log(`Successfully assigned all duties for date ${date.toISOString().split('T')[0]}. Assigned: ${assignedDuties.length}/${requiredDuties}`);
-    } else {
-        console.log(`Could not assign all duties for date ${date.toISOString().split('T')[0]}. Assigned: ${assignedDuties.length}/${requiredDuties}`);
     }
 
     return assignedDuties;
