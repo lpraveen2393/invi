@@ -1,21 +1,46 @@
-_id,name,maxDuties,assignedDuties,unavailableDates,dutyDates
-EMP00,John Doe,5,0,"2024-12-15,2024-12-20",
-EMP002,Jane Smith,5,0,"2024-12-16,2024-12-22",
-EMP003,Mike Johnson,5,0,,
-EMP004,Emily Brown,5,0,"2024-12-19,2024-12-25",
-EMP005,Chris Wilson,5,0,2024-12-17,
-EMP006,Sarah Davis,4,0,"2024-12-18,2024-12-22",
-EMP007,Tom Anderson,4,0,,
-EMP008,Lisa Taylor,4,0,"2024-12-5",
-EMP009,Robert Martin,4,0,"2024-12-23,2024-12-26",
-EMP010,Emma White,4,0,"2024-12-24",
-EMP01,David Lee,3,0,,
-EMP012,Karen Clark,3,0,2024-12-26,
-EMP013,Michael Harris,3,0,"2024-12-27,2024-12-28",
-EMP014,Jennifer Lewis,3,0,,
-EMP015,Daniel Walker,3,0,"2024-12-30,2024-12-3",
-EMP016,Olivia Green,2,0,"2025-01-01,2025-01-02",
-EMP017,James Hall,2,0,,
-EMP018,Sophia Young,2,0,"2025-01-04,2025-01-05",
-EMP019,William Turner,2,0,2025-01-06,
-EMP020,Ava Robinson,2,0,"2025-01-07,2025-01-08",
+FACULTY DETAILS2,SCHOOL,MAX DUTIES
+"C037-Kannan, K",CSE,0
+"C050-Shanthi, B",CSE,0
+"C1046-Meena, V",CSE,0
+"C1104-Rajkumar, K",CSE,2
+"C1114-Muralidharan, D",CSE,2
+"C2408-Manivannan, P",CSE,2
+"C2420-ab",CSE,3
+"C2434-Dennis Ananth, A",CSE,4
+"C2525-Devi Sri Nandhini, M",CSE,5
+"C2537-Pradeep, G",CSE,2
+"C295-Anand, V",CSE,0
+"C375-Manikandan, G",CSE,3
+"C413-Kamakshi, S",CSE,4
+"C436-Rajendiran, P",CSE,4
+"C449-Chakrapani, K",CSE,5
+"C564-Manivannan, D",CSE,3
+"C756-Lavanya, M",CSE,3
+"C926-Ramya, S",CSE,3
+"RS318-Ananth Hari, R",CSE,5
+"RS545-Aarthi, S",CSE,5
+"RS714-Vigneswar, N",CSE,5
+"RS735-Latha, T M",CSE,5
+"RS756-Sivaranjani, R",CSE,5
+"RS888-Pugazhenthi, V",CSE,4
+"RS889-Ushadevi, G",CSE,3
+"C1001-Rajesh, R",CSE,6
+"C1002-Shruthi, L",CSE,4
+"C1003-Krishna, V",CSE,2
+"C1004-Suresh, A",CSE,5
+"RS1005-Kavitha, S",CSE,3
+"RS1006-Mahesh, P",CSE,1
+"RS1007-Divya, K",CSE,6
+"RS1008-Sandeep, T",CSE,6
+"C1009-Vinod, R",CSE,3
+"C1010-Priya, M",CSE,2
+"RS1011-Raghu, V",CSE,4
+"RS1012-Sindhuja, T",CSE,5
+"C1013-Balaji, N",CSE,1
+"C1014-Harini, S",CSE,6
+"RS1015-Deepak, A",CSE,6
+"RS1016-Vani, L",CSE,3
+"C1017-Nithya, K",CSE,4
+"RS1018-Karthik, S",CSE,6
+"RS1019-Saranya, R",CSE,2
+"C1020-Arun, B",CSE,3

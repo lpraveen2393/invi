@@ -1,5 +1,3 @@
-// models/Employee.js
-
 const mongoose = require('mongoose');
 const { normalizeDate } = require('../utils/normDates'); // Import the utility function
 
@@ -26,10 +24,14 @@ const employeeSchema = new mongoose.Schema({
         type: [Date],
         default: []
     },
-    dutyDates: {
-        type: [Date],
-        default: []
-    }
+    dutyDates: [{
+        date: { type: Date, required: true },
+        session: {
+            type: String,
+            required: true,
+            enum: ['FN', 'AN'] // Restrict to only these values
+        }
+    }]
 });
 
 // Pre-save middleware to ensure dates are normalized
@@ -38,7 +40,10 @@ employeeSchema.pre('save', function (next) {
     this.unavailableDates = this.unavailableDates.map(date => normalizeDate(date));
 
     // Normalize dutyDates
-    this.dutyDates = this.dutyDates.map(date => normalizeDate(date));
+    this.dutyDates = this.dutyDates.map(duty => {
+        duty.date = normalizeDate(duty.date);  // Normalize date for dutyDates
+        return duty;
+    });
 
     next();
 });

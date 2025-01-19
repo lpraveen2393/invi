@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const CSVUpload = () => {
+const COEUpload = () => {
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
@@ -13,6 +13,7 @@ const CSVUpload = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         if (!file) {
             setMessage('Please select a file');
             return;
@@ -22,29 +23,12 @@ const CSVUpload = () => {
         setMessage('');
 
         const reader = new FileReader();
-        reader.onload = async (event) => {
-            const csv = event.target.result;
-            const lines = csv.split('\n');
-            const headers = lines[0].split(',');
-            const jsonData = [];
-
-            for (let i = 1; i < lines.length; i++) {
-                if (lines[i].trim() === '') continue;
-                const values = lines[i].split(',');
-                const row = {};
-                for (let j = 0; j < headers.length; j++) {
-                    row[headers[j].trim()] = values[j].trim();
-                }
-                jsonData.push(row);
-            }
+        reader.onloadend = async () => {
+            const fileContent = reader.result.split(',')[1];
 
             try {
-                const response = await axios.post('http://localhost:5000/schedule', jsonData, {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                setMessage('CSV processed and duties assigned successfully');
+                const response = await axios.post('http://localhost:5000/schedule', { fileContent });
+                setMessage(response.data.message);
             } catch (error) {
                 console.error('Error processing CSV:', error);
                 setMessage('Error processing CSV: ' + (error.response?.data?.message || error.message));
@@ -53,12 +37,26 @@ const CSVUpload = () => {
             }
         };
 
-        reader.onerror = (error) => {
-            setMessage('Error reading file: ' + error);
-            setLoading(false);
-        };
+        reader.readAsDataURL(file);
+    };
 
-        reader.readAsText(file);
+    const handleDownload = async (endpoint) => {
+        try {
+            const response = await axios.get(`http://localhost:5000${endpoint}`, {
+                responseType: 'blob',
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', endpoint.includes('date-wise') ? 'date_wise_duty.csv' : 'staff_wise_duty.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error('Error downloading file:', error);
+            setMessage('Error downloading file: ' + error.message);
+        }
     };
 
     return (
@@ -66,7 +64,7 @@ const CSVUpload = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label htmlFor="csvFile" className="block text-sm font-medium text-gray-700">
-                        EXAM SCHEDULE BY COE
+                        Exam Schedule Upload
                     </label>
                     <input
                         type="file"
@@ -84,7 +82,7 @@ const CSVUpload = () => {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
                 >
                     {loading ? 'Processing...' : 'Upload and Process CSV'}
                 </button>
@@ -94,8 +92,22 @@ const CSVUpload = () => {
                     {message}
                 </div>
             )}
+            <div className="mt-4 space-y-2">
+                <button
+                    onClick={() => handleDownload('/schedule/date-wise-duties')}
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+                >
+                    Download Date-wise Duties
+                </button>
+                <button
+                    onClick={() => handleDownload('/schedule/staff-wise-duties')}
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+                >
+                    Download Staff-wise Duties
+                </button>
+            </div>
         </div>
     );
 };
 
-export default CSVUpload;
+export default COEUpload;
