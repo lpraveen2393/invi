@@ -226,6 +226,63 @@ router.get('/date-wise-duties', async (req, res) => {
     }
 });
 
+router.get('/day-wise-duties', async (req, res) => {
+    try {
+        const employees = await Employee.find({});
+        const dayWiseData = [];
+
+        // Process each employee's duty dates
+        employees.forEach(employee => {
+            employee.dutyDates.forEach(duty => {
+                // Format and add each duty to the array
+                dayWiseData.push({
+                    Date: formatDate(duty.date),
+                    Session: duty.session,
+                    StaffName: 'Dr.' + employee.name,
+                    StaffID: employee._id,
+                    Department: employee.department || 'SOC' // Using department from employee model if available, else default to SOC
+                });
+            });
+        });
+
+        // Sort the data by date and session
+        dayWiseData.sort((a, b) => {
+            // Convert dates to comparable format (assuming DD-MM-YYYY format)
+            const dateA = new Date(a.Date.split('-').reverse().join('-'));
+            const dateB = new Date(b.Date.split('-').reverse().join('-'));
+
+            const dateCompare = dateA - dateB;
+            if (dateCompare === 0) {
+                // If same date, sort by session (FN comes before AN)
+                return a.Session.localeCompare(b.Session);
+            }
+            return dateCompare;
+        });
+
+        // Create CSV writer with the specified columns
+        const csvWriter = createObjectCsvWriter({
+            path: './day_wise_duty.csv',
+            header: [
+                { id: 'Date', title: 'Date' },
+                { id: 'Session', title: 'FN/AN' },
+                { id: 'StaffName', title: 'Staff Name' },
+                { id: 'StaffID', title: 'EmpID' },
+                { id: 'Department', title: 'Dept' }
+            ]
+        });
+
+        // Write the records to CSV
+        await csvWriter.writeRecords(dayWiseData);
+
+        // Send the file as download
+        res.download('./day_wise_duty.csv', 'day_wise_duty.csv');
+    } catch (error) {
+        console.error('Error generating day-wise duties:', error);
+        res.status(500).send('Error generating CSV file');
+    }
+});
+
+
 router.get('/staff-wise-duties', async (req, res) => {
     try {
         // Clean up past duties before generating report

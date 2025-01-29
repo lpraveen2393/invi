@@ -49,7 +49,7 @@ const COEUpload = () => {
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', endpoint.includes('date-wise') ? 'date_wise_duty.csv' : 'staff_wise_duty.csv');
+            link.setAttribute('download', endpoint.includes('staff-wise') ? 'staff_wise_duty.csv' : endpoint.includes('date-wise') ? 'date_wise_duty.csv' : 'day_wise_duty.csv');
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -104,6 +104,13 @@ const COEUpload = () => {
                     className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
                 >
                     Download Staff-wise Duties
+                </button>
+
+                <button
+                    onClick={() => handleDownload('/schedule/day-wise-duties')}
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+                >
+                    Final report template
                 </button>
             </div>
         </div>
