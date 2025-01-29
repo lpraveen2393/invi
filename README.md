@@ -1,8 +1,8 @@
 # Invi
 
-Invi is a web application designed to efficiently allocate exam duties for staff members.
+Invi is a web application designed to allocate exam duties for staff members efficiently.
 
-### Steps
+## Steps
 
 1. Clone the repository:
 
@@ -60,27 +60,34 @@ Invi is a web application designed to efficiently allocate exam duties for staff
 ## Application Usage
 
 1. **Home Page (`/`):**  
-   Used to:
-   - Create the database and collections.
+   - Create the database and collections.  
    - Upload employee data from `dbpopulate.csv`.
 
 2. **Single Employee Updates (`/home`):**  
-   Allows an individual employee to update their unavailable dates.  
-   URL: `http://localhost:3000/home`
+   - Allows an individual employee to update their unavailable dates.  
+   - URL: `http://localhost:3000/home`
 
 3. **Bulk Employee Updates (`/csv`):**  
-   Upload a CSV file (`unavailabledates(csv page).csv`) to update unavailable dates for multiple employees.  
-   URL: `http://localhost:3000/csv`
+   - Upload a CSV file (`unavailabledates(csv page).csv`) to update unavailable dates for multiple employees.  
+   - URL: `http://localhost:3000/csv`
 
 4. **COE Exam Schedule Updates (`/coe`):**  
-   Update the exam schedule using a CSV file (`examdateDuties(coe page).csv`) provided by the COE.  
-   URL: `http://localhost:3000/coe`
+   - Update the exam schedule using a CSV file (`examDuties.csv`) provided by the COE.  
+   - URL: `http://localhost:3000/coe`
 
 5. **Duty Assignment:**  
-   Duties are automatically assigned based on the input data.  
-   A CSV file (`employee_duty_schedule.csv`) is generated containing the duty schedule.
+   - Duties are automatically assigned based on the input data.  
+   - Multiple options for output download are provided: staff-wise, date-wise, and according to the COE final report template.
+
+## Inputs
+
+- `dbpopulate.csv`: Contains employee data for initial database population.
+- `unavailabledates(csv page).csv`: A CSV file with unavailable dates for multiple employees.
+- `examdateDuties.csv`: A CSV file containing exam schedule data from the COE.
 
 ## Outputs
 
-- `employee_duty_schedule.csv`: A file containing the allocated exam duties for staff.
+- `date_wise_duty.csv`: Duties assigned based on date.
+- `staff_wise_duty.csv`: Duties assigned per staff member.
+- `day_wise_duty.csv`: Final report template according to COE requirements.
 
