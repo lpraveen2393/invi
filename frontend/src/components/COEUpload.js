@@ -112,6 +112,12 @@ const COEUpload = () => {
                 >
                     Final report template
                 </button>
+                <button
+                    onClick={() => handleDownload('/schedule/staff-one-duties')}
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+                >
+                    staff one by one
+                </button>
             </div>
         </div>
     );

@@ -3,6 +3,7 @@ const { parse } = require('papaparse');
 const { createObjectCsvWriter } = require('csv-writer');
 const Employee = require('../models/Employee');
 const { normalizeDate } = require('../utils/normDates');
+const { log } = require('console');
 const router = express.Router();
 
 // Enhanced date formatting with validation
@@ -159,14 +160,9 @@ router.post('/', async (req, res) => {
 router.get('/date-wise-duties', async (req, res) => {
     try {
         // Clean up past duties before generating report
-
-
         // Fetch all employees and their duties
         const employees = await Employee.find({});
         const dateWiseDuties = [];
-
-
-
         // Sort duties by date (chronological order)
         dateWiseDuties.sort((a, b) => a.Date - b.Date);
         // Within the date-wise-duties route
@@ -186,7 +182,6 @@ router.get('/date-wise-duties', async (req, res) => {
                         Employees: []
                     });
                 }
-
                 dateSessionMap.get(key).Employees.push(`${employee._id}-${employee.name}`);
             });
         });
@@ -219,7 +214,7 @@ router.get('/date-wise-duties', async (req, res) => {
 
         await csvWriter.writeRecords(formattedData);
 
-        res.download('./date_wise_duty.csv', 'date_wise_duty.csv');
+        res.download(path.join(__dirname, '../../output files/date_wise_duty.csv'), 'date_wise_duty.csv');
     } catch (error) {
         console.error('Error generating date-wise duties:', error);
         res.status(500).send('Error generating CSV file');
@@ -261,7 +256,7 @@ router.get('/day-wise-duties', async (req, res) => {
 
         // Create CSV writer with the specified columns
         const csvWriter = createObjectCsvWriter({
-            path: './day_wise_duty.csv',
+            path: './final_report.csv',
             header: [
                 { id: 'Date', title: 'Date' },
                 { id: 'Session', title: 'FN/AN' },
@@ -275,7 +270,7 @@ router.get('/day-wise-duties', async (req, res) => {
         await csvWriter.writeRecords(dayWiseData);
 
         // Send the file as download
-        res.download('./day_wise_duty.csv', 'day_wise_duty.csv');
+        res.download(path.join(__dirname, '../../output files/final_report.csv'), 'final_report.csv');
     } catch (error) {
         console.error('Error generating day-wise duties:', error);
         res.status(500).send('Error generating CSV file');
@@ -336,13 +331,103 @@ router.get('/staff-wise-duties', async (req, res) => {
         });
 
         await csvWriter.writeRecords(formattedData);
-        res.download('./staff_wise_duty.csv', 'staff_wise_duty.csv');
+        res.download(path.join(__dirname, '../../output files/staff_wise_duty.csv'), 'staff_wise_duty.csv');
     } catch (error) {
         console.error('Error generating staff-wise duties:', error);
         res.status(500).send('Error generating CSV file');
     }
 });
 
+// Add this route to your existing router
+
+/**
+ * POST route to export all staff duties as a downloadable CSV file
+ * Each staff member's duties are grouped together and sorted chronologically
+ */
+router.get('/staff-one-duties', async (req, res) => {
+    try {
+        console.log('Starting staff duties export process...');
+
+        // Fetch all employees from database - use existing sort pattern
+        const employees = await Employee.find({}).sort({ _id: 1 });
+
+        if (!employees || employees.length === 0) {
+            return res.status(400).json({ message: 'No employees found in the database' });
+        }
+
+        console.log(`Found ${employees.length} employees for export`);
+
+        // Prepare CSV data
+        const csvData = [];
+
+        // Process each employee
+        for (const employee of employees) {
+            // Skip employees with no duties
+            if (!employee.dutyDates || employee.dutyDates.length === 0) {
+                continue;
+            }
+
+            // Sort the employee's duties chronologically
+            const sortedDuties = [...employee.dutyDates].sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+
+                // First compare by date
+                const dateCompare = dateA - dateB;
+                if (dateCompare !== 0) return dateCompare;
+
+                // If same date, sort by session (FN comes before AN)
+                return a.session.localeCompare(b.session);
+            });
+
+            // Add each duty as a separate row in the CSV
+            sortedDuties.forEach(duty => {
+                const formattedDate = formatDate(duty.date);
+                if (formattedDate) {
+                    csvData.push({
+                        staff_id: employee._id,
+                        name: employee.name,
+                        date: formattedDate,
+                        shift: duty.session,
+                        department: employee.department || 'SOC'
+                    });
+                }
+            });
+        }
+
+        // Check if we have any data to export
+        if (csvData.length === 0) {
+            return res.status(400).json({ message: 'No duties found for any employees' });
+        }
+
+        console.log(`Total ${csvData.length} duty records to be exported`);
+
+        // Define CSV file path - use consistent naming pattern with other exports
+
+
+        // Configure CSV writer - reuse the pattern from your other routes
+        const csvWriter = createObjectCsvWriter({
+            path: './staff_one_duties.csv',
+            header: [
+                { id: 'staff_id', title: 'staff_id' },
+                { id: 'name', title: 'name' },
+                { id: 'date', title: 'date' },
+                { id: 'shift', title: 'shift' },
+                { id: 'department', title: 'department' }
+            ]
+        });
+
+        // Write data to CSV file
+        await csvWriter.writeRecords(csvData);
+
+        // Send the file as download - consistent with your other routes
+        res.download(path.join(__dirname, '../../output files/staff_one_duties.csv'), 'staff_one_duties.csv');
+
+    } catch (error) {
+        console.error('Error exporting staff duties:', error);
+        res.status(500).json({ message: 'Internal server error: ' + error.message });
+    }
+});
 
 
 const assignDuties = async (date, requiredDuties, session) => {

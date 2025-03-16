@@ -29,7 +29,20 @@ const employeeSchema = new mongoose.Schema({
         session: {
             type: String,
             required: true,
-            enum: ['FN', 'AN'] // Restrict to only these values
+            validate: {
+                validator: function (value) {
+                    // Accept 'fn' or 'an' (case-insensitive)
+                    if (typeof value === 'string' &&
+                        (value.toUpperCase() === 'FN' || value.toUpperCase() === 'AN')) {
+                        return true;
+                    }
+
+                    // Accept integers from 1 to 10
+                    const num = parseInt(value);
+                    return !isNaN(num) && num > 0 && num <= 10;
+                },
+                message: props => `${props.value} is not a valid session. Must be 'FN', 'AN', or a number between 1 and 10.`
+            }
         }
     }]
 });
@@ -42,6 +55,12 @@ employeeSchema.pre('save', function (next) {
     // Normalize dutyDates
     this.dutyDates = this.dutyDates.map(duty => {
         duty.date = normalizeDate(duty.date);  // Normalize date for dutyDates
+
+        // Normalize session format (convert to uppercase if string)
+        if (typeof duty.session === 'string') {
+            duty.session = duty.session.toUpperCase();
+        }
+
         return duty;
     });
 
