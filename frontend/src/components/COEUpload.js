@@ -13,7 +13,6 @@ const COEUpload = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         if (!file) {
             setMessage('Please select a file');
             return;
@@ -42,14 +41,22 @@ const COEUpload = () => {
 
     const handleDownload = async (endpoint) => {
         try {
-            const response = await axios.get(`http://localhost:5000${endpoint}`, {
+            const response = await axios.get(`http://localhost:5000/schedule${endpoint}`, {
                 responseType: 'blob',
             });
 
+            const filenameMap = {
+                '/exam-duties-date': 'duties_by_date.csv',
+                '/faculty-duty-summary': 'faculty_duty_summary.csv',
+                '/final-duty-report': 'final_duty_report.csv',
+                '/individual-faculty-duties': 'individual_faculty_duties.csv'
+            };
+
+            const filename = filenameMap[endpoint] || 'duty_report.csv';
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', endpoint.includes('staff-wise') ? 'staff_wise_duty.csv' : endpoint.includes('date-wise') ? 'date_wise_duty.csv' : 'day_wise_duty.csv');
+            link.setAttribute('download', filename);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -60,11 +67,12 @@ const COEUpload = () => {
     };
 
     return (
-        <div className="p-4 max-w-md mx-auto bg-white rounded-xl shadow-md">
+        <div className="p-4 max-w-lg mx-auto bg-white rounded-xl shadow-md text-center">
+
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label htmlFor="csvFile" className="block text-sm font-medium text-gray-700">
-                        Exam Schedule Upload
+                    <label htmlFor="csvFile" className="block text-sm font-medium text-gray-700 mb-2">
+                        Upload the Exam Schedule
                     </label>
                     <input
                         type="file"
@@ -73,16 +81,16 @@ const COEUpload = () => {
                         onChange={handleFileChange}
                         className="mt-1 block w-full text-sm text-gray-500
                         file:mr-4 file:py-2 file:px-4
-                        file:rounded-full file:border-0
+                        file:rounded-lg file:border-0
                         file:text-sm file:font-semibold
-                        file:bg-blue-50 file:text-blue-700
-                        hover:file:bg-blue-100"
+                        file:bg-blue-500 file:text-white
+                        hover:file:bg-blue-600 cursor-pointer"
                     />
                 </div>
                 <button
                     type="submit"
-                    disabled={loading}
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
+                    disabled={!file || loading}
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300"
                 >
                     {loading ? 'Processing...' : 'Upload and Process CSV'}
                 </button>
@@ -92,31 +100,31 @@ const COEUpload = () => {
                     {message}
                 </div>
             )}
-            <div className="mt-4 space-y-2">
+            <div className="mt-8 pt-6 space-y-4 border-t border-gray-300">
+                <h2 className="text-md font-semibold text-blue-800">Download Reports</h2>
                 <button
-                    onClick={() => handleDownload('/schedule/date-wise-duties')}
+                    onClick={() => handleDownload('/exam-duties-date')}
                     className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
                 >
-                    Download Date-wise Duties
+                    Download Exam Duties by Date
                 </button>
                 <button
-                    onClick={() => handleDownload('/schedule/staff-wise-duties')}
+                    onClick={() => handleDownload('/faculty-duty-summary')}
                     className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
                 >
-                    Download Staff-wise Duties
-                </button>
-
-                <button
-                    onClick={() => handleDownload('/schedule/day-wise-duties')}
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
-                >
-                    Final report template
+                    Download Faculty Duty Summary
                 </button>
                 <button
-                    onClick={() => handleDownload('/schedule/staff-one-duties')}
+                    onClick={() => handleDownload('/final-duty-report')}
                     className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
                 >
-                    staff one by one
+                    Download Final Duty Report
+                </button>
+                <button
+                    onClick={() => handleDownload('/individual-faculty-duties')}
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+                >
+                    Download Individual Faculty Duties
                 </button>
             </div>
         </div>

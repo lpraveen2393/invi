@@ -5,6 +5,10 @@ const Employee = require('../models/Employee');
 const { normalizeDate } = require('../utils/normDates');
 const { log } = require('console');
 const router = express.Router();
+const path = require('path');
+const converter = require('json-2-csv');
+
+
 
 // Enhanced date formatting with validation
 const formatDate = (dateStr) => {
@@ -83,7 +87,6 @@ const cleanupPastDuties = async () => {
     console.log('Cleanup completed');
 };
 
-// Endpoint to process CSV file and assign duties
 router.post('/', async (req, res) => {
     try {
         console.log('Starting duty assignment process...');
@@ -157,7 +160,12 @@ router.post('/', async (req, res) => {
         res.status(500).json({ message: 'Internal server error: ' + error.message });
     }
 });
-router.get('/date-wise-duties', async (req, res) => {
+
+// First, add this at the top of your schedule.js file
+
+
+// Replace your date-wise-duties route with this:
+router.get('/exam-duties-date', async (req, res) => {
     try {
         // Clean up past duties before generating report
         // Fetch all employees and their duties
@@ -188,40 +196,37 @@ router.get('/date-wise-duties', async (req, res) => {
         dateWiseDuties.sort((a, b) => a.Date - b.Date);
         // Convert map to array and format data
         const formattedData = Array.from(dateSessionMap.values()).map(entry => ({
-            Date: entry.Date,
-            Session: entry.Session,
-            Employee: entry.Employees.join(', ')  // Join all employees for this date-session with comma
+            "Exam Date": entry.Date,
+            "Session": entry.Session,
+            "Assigned Faculty": entry.Employees.join(', ')  // Join all employees for this date-session with comma
         }));
 
         // Sort by date and session
         formattedData.sort((a, b) => {
-            const dateCompare = new Date(a.Date.split('-').reverse().join('-')) -
-                new Date(b.Date.split('-').reverse().join('-'));
+            const dateCompare = new Date(a["Exam Date"].split('-').reverse().join('-')) -
+                new Date(b["Exam Date"].split('-').reverse().join('-'));
             if (dateCompare === 0) {
                 return a.Session.localeCompare(b.Session);
             }
             return dateCompare;
         });
 
-        const csvWriter = createObjectCsvWriter({
-            path: './date_wise_duty.csv',
-            header: [
-                { id: 'Date', title: 'Exam Date' },
-                { id: 'Session', title: 'Session' },
-                { id: 'Employee', title: 'Assigned Faculty' }
-            ]
-        });
+        // Convert JSON to CSV
+        const csvContent = await converter.json2csv(formattedData);
 
-        await csvWriter.writeRecords(formattedData);
-
-        res.download(path.join(__dirname, '../../output files/date_wise_duty.csv'), 'date_wise_duty.csv');
+        // Set headers and send response
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=exam_duties_by_date.csv');
+        res.send(csvContent);
     } catch (error) {
-        console.error('Error generating date-wise duties:', error);
+        console.error('Error generating exam schedule by date:', error);
         res.status(500).send('Error generating CSV file');
     }
 });
 
-router.get('/day-wise-duties', async (req, res) => {
+
+// Replace your day-wise-duties route with this:
+router.get('/final-duty-report', async (req, res) => {
     try {
         const employees = await Employee.find({});
         const dayWiseData = [];
@@ -231,11 +236,11 @@ router.get('/day-wise-duties', async (req, res) => {
             employee.dutyDates.forEach(duty => {
                 // Format and add each duty to the array
                 dayWiseData.push({
-                    Date: formatDate(duty.date),
-                    Session: duty.session,
-                    StaffName: 'Dr.' + employee.name,
-                    StaffID: employee._id,
-                    Department: employee.department || 'SOC' // Using department from employee model if available, else default to SOC
+                    "Date": formatDate(duty.date),
+                    "FN/AN": duty.session,
+                    "Staff Name": 'Dr.' + employee.name,
+                    "EmpID": employee._id,
+                    "Dept": employee.department || 'SOC' // Using department from employee model if available, else default to SOC
                 });
             });
         });
@@ -249,40 +254,27 @@ router.get('/day-wise-duties', async (req, res) => {
             const dateCompare = dateA - dateB;
             if (dateCompare === 0) {
                 // If same date, sort by session (FN comes before AN)
-                return a.Session.localeCompare(b.Session);
+                return a["FN/AN"].localeCompare(b["FN/AN"]);
             }
             return dateCompare;
         });
 
-        // Create CSV writer with the specified columns
-        const csvWriter = createObjectCsvWriter({
-            path: './final_report.csv',
-            header: [
-                { id: 'Date', title: 'Date' },
-                { id: 'Session', title: 'FN/AN' },
-                { id: 'StaffName', title: 'Staff Name' },
-                { id: 'StaffID', title: 'EmpID' },
-                { id: 'Department', title: 'Dept' }
-            ]
-        });
+        // Convert JSON to CSV
+        const csvContent = await converter.json2csv(dayWiseData);
 
-        // Write the records to CSV
-        await csvWriter.writeRecords(dayWiseData);
-
-        // Send the file as download
-        res.download(path.join(__dirname, '../../output files/final_report.csv'), 'final_report.csv');
+        // Set headers and send response
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=final_duty_report.csv');
+        res.send(csvContent);
     } catch (error) {
-        console.error('Error generating day-wise duties:', error);
+        console.error('Error generating final duty report:', error);
         res.status(500).send('Error generating CSV file');
     }
 });
 
-
-router.get('/staff-wise-duties', async (req, res) => {
+// Replace your staff-wise-duties route with this:
+router.get('/faculty-duty-summary', async (req, res) => {
     try {
-        // Clean up past duties before generating report
-
-
         // Fetch all employees and their duties
         const employees = await Employee.find({});
         // Modified staff-wise duties processing code
@@ -322,29 +314,21 @@ router.get('/staff-wise-duties', async (req, res) => {
         // Sort by faculty ID
         formattedData.sort((a, b) => a.Faculty.localeCompare(b.Faculty));
 
-        const csvWriter = createObjectCsvWriter({
-            path: './staff_wise_duty.csv',
-            header: [
-                { id: 'Faculty', title: 'Faculty' },
-                { id: 'Dates', title: 'Dates' }
-            ]
-        });
+        // Convert JSON to CSV
+        const csvContent = await converter.json2csv(formattedData);
 
-        await csvWriter.writeRecords(formattedData);
-        res.download(path.join(__dirname, '../../output files/staff_wise_duty.csv'), 'staff_wise_duty.csv');
+        // Set headers and send response
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=faculty_duty_summary.csv');
+        res.send(csvContent);
     } catch (error) {
-        console.error('Error generating staff-wise duties:', error);
+        console.error('Error generating faculty duty summary:', error);
         res.status(500).send('Error generating CSV file');
     }
 });
 
-// Add this route to your existing router
-
-/**
- * POST route to export all staff duties as a downloadable CSV file
- * Each staff member's duties are grouped together and sorted chronologically
- */
-router.get('/staff-one-duties', async (req, res) => {
+// Replace your staff-one-duties route with this:
+router.get('/individual-faculty-duties', async (req, res) => {
     try {
         console.log('Starting staff duties export process...');
 
@@ -402,33 +386,18 @@ router.get('/staff-one-duties', async (req, res) => {
 
         console.log(`Total ${csvData.length} duty records to be exported`);
 
-        // Define CSV file path - use consistent naming pattern with other exports
+        // Convert JSON to CSV
+        const csvContent = await converter.json2csv(csvData);
 
-
-        // Configure CSV writer - reuse the pattern from your other routes
-        const csvWriter = createObjectCsvWriter({
-            path: './staff_one_duties.csv',
-            header: [
-                { id: 'staff_id', title: 'staff_id' },
-                { id: 'name', title: 'name' },
-                { id: 'date', title: 'date' },
-                { id: 'shift', title: 'shift' },
-                { id: 'department', title: 'department' }
-            ]
-        });
-
-        // Write data to CSV file
-        await csvWriter.writeRecords(csvData);
-
-        // Send the file as download - consistent with your other routes
-        res.download(path.join(__dirname, '../../output files/staff_one_duties.csv'), 'staff_one_duties.csv');
-
+        // Set headers and send response
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=individual_faculty_duties.csv');
+        res.send(csvContent);
     } catch (error) {
-        console.error('Error exporting staff duties:', error);
-        res.status(500).json({ message: 'Internal server error: ' + error.message });
+        console.error('Error generating individual faculty duties:', error);
+        res.status(500).send('Error generating CSV file');
     }
 });
-
 
 const assignDuties = async (date, requiredDuties, session) => {
     const allEmployees = await Employee.find({});

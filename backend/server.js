@@ -8,7 +8,7 @@ const scheduleRoute = require('./routes/schedule');
 const DbPopulate = require('./routes/dbpopulate');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000 || 5001 || 8880;
 
 app.use(cors({
     origin: 'http://localhost:3000',
@@ -22,7 +22,6 @@ connectDB();
 
 app.use(express.json());
 app.use('/employees', employeeRoutes);
-//app.use('/uploads', uploadRoute);
 app.use('/uploadcsv', csvuploadRoute);
 app.use('/schedule', scheduleRoute);
 app.use('/dbpopulate', DbPopulate);
