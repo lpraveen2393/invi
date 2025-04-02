@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { normalizeDate } = require('../utils/normDates'); // Import the utility function
+const { normalizeDate } = require('../utils/normDates'); // Import the utility function for date normalization.
 
 const employeeSchema = new mongoose.Schema({
     _id: {
@@ -26,6 +26,7 @@ const employeeSchema = new mongoose.Schema({
     },
     dutyDates: [{
         date: { type: Date, required: true },
+        //session can be 'FN', 'AN', or an integer from 1 to 10
         session: {
             type: String,
             required: true,

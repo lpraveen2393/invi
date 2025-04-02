@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// Set the base URL for axios requests
 const api = {
     getEmployees: async () => {
         try {

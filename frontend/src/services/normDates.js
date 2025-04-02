@@ -1,3 +1,8 @@
+// This function normalizes date inputs to a consistent format (UTC noon) and handles various input types.
+//converts the dd-mm-yyyy format to mm-dd-yyyy format
+
+
+
 export const normalizeDate = (dateInput) => {
     if (!dateInput) {
         console.log('Date input is null or undefined');

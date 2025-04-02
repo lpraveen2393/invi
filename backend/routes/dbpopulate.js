@@ -10,8 +10,10 @@ router.post('/', async (req, res) => {
             throw new Error('No valid rows found in the CSV file');
         }
 
-        // Process each row from the CSV
+        //
         const bulkOperations = csvData.map((row) => {
+            //if there is change in the columnName then change it here,for now (facultyDetails, maxDuties)
+            //refer the input files/dbPopulute.csv for the column names
             const facultyDetails = row.facultyDetails;
             const maxDuties = row.maxDuties;
 
@@ -34,7 +36,7 @@ router.post('/', async (req, res) => {
                             unavailableDates: []
                         }
                     },
-                    upsert: true
+                    upsert: true // This will insert a new document if no document matches the filter
                 }
             };
         });

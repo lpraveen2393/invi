@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const cors = require('cors');
-
-// Assuming you have a mongoose model for employees
 const Employee = require('../models/Employee');
 
 router.use(cors());
 
+// this route is used to upload unavailable data in the form of CSV data and update employee records in the database
+// Refer the input csv files/unavailableDates.csv for the format of the csv data
 router.post('/', async (req, res) => {
     try {
         const csvData = req.body;
