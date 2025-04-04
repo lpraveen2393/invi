@@ -61,6 +61,7 @@ const validateChronologicalOrder = (csvData) => {
 };
 
 // Function to clean up past duties
+// such that duties only from-today onwards are retained in the database
 const cleanupPastDuties = async () => {
     console.log('Starting cleanup of past duties...');
     const today = new Date();
@@ -92,6 +93,8 @@ router.post('/', async (req, res) => {
         console.log('Starting duty assignment process...');
         await cleanupPastDuties();
 
+
+        // Check if fileContent is provided in the request body
         const { fileContent } = req.body;
         if (!fileContent) {
             console.error('No file content provided');
@@ -161,20 +164,16 @@ router.post('/', async (req, res) => {
     }
 });
 
-// First, add this at the top of your schedule.js file
+//fetches all the exam-duties for a particular date
+//csv format syntax - date,session,assinged faculty
+//for eg :18-11-2025	1	C1104-Rajkumar, K, C2420-ab, C2434-Dennis Ananth, A
 
-
-// Replace your date-wise-duties route with this:
 router.get('/exam-duties-date', async (req, res) => {
     try {
-        // Clean up past duties before generating report
-        // Fetch all employees and their duties
         const employees = await Employee.find({});
         const dateWiseDuties = [];
         // Sort duties by date (chronological order)
         dateWiseDuties.sort((a, b) => a.Date - b.Date);
-        // Within the date-wise-duties route
-        // First create a map to group employees by date and session
         const dateSessionMap = new Map();
 
         employees.forEach(employee => {
@@ -211,10 +210,14 @@ router.get('/exam-duties-date', async (req, res) => {
             return dateCompare;
         });
 
-        // Convert JSON to CSV
-        const csvContent = await converter.json2csv(formattedData);
+        /**
+              * Converts JSON data to CSV format using an on-the-fly method.
+              * This avoids creating a CSV file on the server by generating the CSV data in-memory,
+              * allowing for immediate download or further processing without file storage.
+              *used across all download routes
+              */
 
-        // Set headers and send response
+        const csvContent = await converter.json2csv(formattedData);
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', 'attachment; filename=exam_duties_by_date.csv');
         res.send(csvContent);
@@ -225,60 +228,15 @@ router.get('/exam-duties-date', async (req, res) => {
 });
 
 
-// Replace your day-wise-duties route with this:
-router.get('/final-duty-report', async (req, res) => {
-    try {
-        const employees = await Employee.find({});
-        const dayWiseData = [];
-
-        // Process each employee's duty dates
-        employees.forEach(employee => {
-            employee.dutyDates.forEach(duty => {
-                // Format and add each duty to the array
-                dayWiseData.push({
-                    "Date": formatDate(duty.date),
-                    "FN/AN": duty.session,
-                    "Staff Name": 'Dr.' + employee.name,
-                    "EmpID": employee._id,
-                    "Dept": employee.department || 'SOC' // Using department from employee model if available, else default to SOC
-                });
-            });
-        });
-
-        // Sort the data by date and session
-        dayWiseData.sort((a, b) => {
-            // Convert dates to comparable format (assuming DD-MM-YYYY format)
-            const dateA = new Date(a.Date.split('-').reverse().join('-'));
-            const dateB = new Date(b.Date.split('-').reverse().join('-'));
-
-            const dateCompare = dateA - dateB;
-            if (dateCompare === 0) {
-                // If same date, sort by session (FN comes before AN)
-                return a["FN/AN"].localeCompare(b["FN/AN"]);
-            }
-            return dateCompare;
-        });
-
-        // Convert JSON to CSV
-        const csvContent = await converter.json2csv(dayWiseData);
-
-        // Set headers and send response
-        res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', 'attachment; filename=final_duty_report.csv');
-        res.send(csvContent);
-    } catch (error) {
-        console.error('Error generating final duty report:', error);
-        res.status(500).send('Error generating CSV file');
-    }
-});
-
-// Replace your staff-wise-duties route with this:
+//fetched all the duties for all staff in order
+// csv format syntax : faculty_id-faculty_name, date1(session1), date2(session2), ...
+//for eg : C1104-Rajkumar, K, 18-11-2025(FN), 19-11-2025(AN)
 router.get('/faculty-duty-summary', async (req, res) => {
     try {
-        // Fetch all employees and their duties
+
         const employees = await Employee.find({});
-        // Modified staff-wise duties processing code
-        const staffWiseDuties = new Map(); // Using Map instead of plain object for better handling
+
+        const staffWiseDuties = new Map();
 
         employees.forEach(employee => {
             if (employee.dutyDates.length > 0) {
@@ -327,7 +285,55 @@ router.get('/faculty-duty-summary', async (req, res) => {
     }
 });
 
-// Replace your staff-one-duties route with this:
+
+//fetched all the duties in order for all dates and sessions
+//csv format syntax :date,session,staff name,staff id ,dept
+router.get('/final-duty-report', async (req, res) => {
+    try {
+        const employees = await Employee.find({});
+        const dayWiseData = [];
+
+        // Process each employee's duty dates
+        employees.forEach(employee => {
+            employee.dutyDates.forEach(duty => {
+                // Format and add each duty to the array
+                dayWiseData.push({
+                    "Exam-Date": formatDate(duty.date),
+                    "Session": duty.session,
+                    "Staff Name": 'Dr.' + employee.name,
+                    "Staff ID": employee._id,
+                    // Using department from employee model if available, else default to SOC
+                    "Dept": employee.department || 'SOC'
+                });
+            });
+        });
+
+        // Sort the data by date and session
+        dayWiseData.sort((a, b) => {
+            const dateA = new Date(a.Date.split('-').reverse().join('-'));
+            const dateB = new Date(b.Date.split('-').reverse().join('-'));
+
+            const dateCompare = dateA - dateB;
+            if (dateCompare === 0) {
+                return a["FN/AN"].localeCompare(b["FN/AN"]);
+            }
+            return dateCompare;
+        });
+
+        const csvContent = await converter.json2csv(dayWiseData);
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=final_duty_report.csv');
+        res.send(csvContent);
+
+    } catch (error) {
+        console.error('Error generating final duty report:', error);
+        res.status(500).send('Error generating CSV file');
+    }
+});
+
+//fetches the duties one at a time for each staff
+//csv format syntax :staffId,staffName,Exam-Date,session,Dept
+//eg:C1001	Rajesh, R	29-11-2025	1	SOC
 router.get('/individual-faculty-duties', async (req, res) => {
     try {
         console.log('Starting staff duties export process...');
@@ -369,11 +375,11 @@ router.get('/individual-faculty-duties', async (req, res) => {
                 const formattedDate = formatDate(duty.date);
                 if (formattedDate) {
                     csvData.push({
-                        staff_id: employee._id,
-                        name: employee.name,
-                        date: formattedDate,
-                        shift: duty.session,
-                        department: employee.department || 'SOC'
+                        "Staff ID": employee._id,
+                        "Staff Name": 'Dr.' + employee.name,
+                        "Exam-Date": formattedDate,
+                        "Session": duty.session,
+                        "Dept": employee.department || 'SOC'
                     });
                 }
             });
@@ -386,18 +392,33 @@ router.get('/individual-faculty-duties', async (req, res) => {
 
         console.log(`Total ${csvData.length} duty records to be exported`);
 
-        // Convert JSON to CSV
         const csvContent = await converter.json2csv(csvData);
-
-        // Set headers and send response
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', 'attachment; filename=individual_faculty_duties.csv');
         res.send(csvContent);
+
     } catch (error) {
         console.error('Error generating individual faculty duties:', error);
         res.status(500).send('Error generating CSV file');
     }
 });
+
+/*
+ * Function to assign duties to employees based on the date and required duties.
+ * This function filters eligible employees, sorts them by their assigned duties,
+ * and assigns them to the specified date and session.
+ 
+ 
+ 
+ conditions for assigning duties to an employee/staff:
+  1.The employee must be available on the given date(unavailable date must not include the duty date)
+  2.  The employee should not have any duties assigned on the given date.
+  3.  The employee should not exceed their maximum allowed duties.  
+
+
+
+
+*/
 
 const assignDuties = async (date, requiredDuties, session) => {
     const allEmployees = await Employee.find({});

@@ -1,3 +1,12 @@
+/**
+ * This file includes additional functions compared to DutyAssign.jsx.
+ * It utilizes reassign routes to delete or reassign duties for a particular staff member or for everyone.
+ * Refer to the file `/backend/routes/reassign.js` for the implementation of all four reassign-related functions.
+ * Note: This file also contains more design bugs that need to be fixed.
+ */
+
+
+
 const express = require('express');
 const router = express.Router();
 const Employee = require('../models/Employee');

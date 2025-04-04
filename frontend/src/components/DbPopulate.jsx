@@ -13,6 +13,11 @@ const DbPopulate = () => {
         setMessage('');
         setError('');
     };
+    /** Retrieves the file from the input 
+    * - Skips the header row and any empty lines from the CSV or text file.
+    * - Sends the cleaned data to the backend endpoint at "http://localhost:5000/dbpopulate" to populate the db.
+    * - refer the input csv file/dbPopulate.csv for the format of the csv file.
+ */
 
     const handleSubmit = async (e) => {
         e.preventDefault();

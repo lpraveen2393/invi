@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { parse } from 'papaparse';
-
+/*
+       gets a csv file as input and parses it to get the _id and unavailable dates of the employee.
+       refer the input csv file/unavailableDates.csv for the format of the csv file.
+   
+   */
 
 const CSVUploader = () => {
     const [file, setFile] = useState(null);

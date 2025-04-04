@@ -3,6 +3,7 @@
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "csv-writer": "^1.6.0",
+    "dotenv": "^16.4.7",
     "express": "^4.21.0",
     "fs": "^0.0.1-security",
     "gridfs-stream": "^1.1.1",

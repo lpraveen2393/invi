@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+/* 
+   Gets the COE (Controller of Examinations) schedule for the exams as input, 
+   processes the data, and allows the processed file to be downloaded from here.
+   
+   refer the input csv file/examDuties.csv for the format of the csv file.
+*/
 
 const COEUpload = () => {
     const [file, setFile] = useState(null);
@@ -65,13 +71,12 @@ const COEUpload = () => {
             setMessage('Error downloading file: ' + error.message);
         }
     };
-
+    // can use a map function to map four buttons and its endpoints to avoid repetition
     return (
-        <div className="p-4 max-w-lg mx-auto bg-white rounded-xl shadow-md text-center">
-
-            <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="p-6 max-w-7xl mx-auto bg-white rounded-xl shadow-md text-center">
+            <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                    <label htmlFor="csvFile" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="csvFile" className="block text-lg font-bold text-blue-800 mb-2">
                         Upload the Exam Schedule
                     </label>
                     <input
@@ -80,52 +85,58 @@ const COEUpload = () => {
                         accept=".csv"
                         onChange={handleFileChange}
                         className="mt-1 block w-full text-sm text-gray-500
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-lg file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-blue-500 file:text-white
-                        hover:file:bg-blue-600 cursor-pointer"
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-lg file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-blue-500 file:text-white
+                            hover:file:bg-blue-800 cursor-pointer"
                     />
                 </div>
                 <button
                     type="submit"
                     disabled={!file || loading}
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300"
+                    className="w-full md:w-auto inline-block px-6 py-2 bg-blue-700 text-white font-semibold rounded-lg shadow-md hover:bg-blue-800 disabled:bg-gray-400"
                 >
                     {loading ? 'Processing...' : 'Upload and Process CSV'}
                 </button>
             </form>
+
             {message && (
-                <div className={`mt-4 text-sm ${message.includes('Error') ? 'text-red-600' : 'text-green-600'}`}>
+                <div className={`mt-4 text-sm ${message.includes('Error') ? 'text-red-800' : 'text-green-700'}`}>
                     {message}
                 </div>
             )}
-            <div className="mt-8 pt-6 space-y-4 border-t border-gray-300">
-                <h2 className="text-md font-semibold text-blue-800">Download Reports</h2>
-                <button
-                    onClick={() => handleDownload('/exam-duties-date')}
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
-                >
-                    Download Exam Duties by Date
-                </button>
-                <button
-                    onClick={() => handleDownload('/faculty-duty-summary')}
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
-                >
-                    Download Faculty Duty Summary
-                </button>
-                <button
-                    onClick={() => handleDownload('/final-duty-report')}
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
-                >
-                    Download Final Duty Report
-                </button>
-                <button
-                    onClick={() => handleDownload('/individual-faculty-duties')}
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
-                >
-                    Download Individual Faculty Duties
-                </button>
+
+            <div className="mt-10 pt-6 border-t border-gray-300">
+                <h2 className="text-md font-semibold text-blue-800 mb-4">Download Reports</h2>
+                <div className="flex flex-nowrap justify-center gap-4 overflow-x-auto">
+                    .
+
+                    <button
+                        onClick={() => handleDownload('/exam-duties-date')}
+                        className="min-w-fit px-4 py-2 bg-blue-700 text-white font-semibold rounded-lg shadow-md hover:bg-blue-800"
+                    >
+                        Download Duties by Date
+                    </button>
+                    <button
+                        onClick={() => handleDownload('/faculty-duty-summary')}
+                        className="min-w-fit px-4 py-2 bg-blue-700 text-white font-semibold rounded-lg shadow-md hover:bg-blue-800"
+                    >
+                        Download Faculty Summary
+                    </button>
+                    <button
+                        onClick={() => handleDownload('/final-duty-report')}
+                        className="min-w-fit px-4 py-2 bg-blue-700 text-white font-semibold rounded-lg shadow-md hover:bg-blue-800"
+                    >
+                        Download Final Report
+                    </button>
+                    <button
+                        onClick={() => handleDownload('/individual-faculty-duties')}
+                        className="min-w-fit px-4 py-2 bg-blue-700 text-white font-semibold rounded-lg shadow-md hover:bg-blue-800"
+                    >
+                        Download Individual Duties
+                    </button>
+                </div>
             </div>
         </div>
     );

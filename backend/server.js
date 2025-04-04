@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
+
 const connectDB = require('./config/database');
 const employeeRoutes = require('./routes/employees');
 const csvuploadRoute = require('./routes/csvuploads');
@@ -7,7 +9,7 @@ const scheduleRoute = require('./routes/schedule');
 const DbPopulate = require('./routes/dbpopulate');
 const ReAssign = require('./routes/reassign');
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 
 app.use(cors({
     origin: 'http://localhost:3000',
@@ -20,6 +22,7 @@ app.use(cors({
 connectDB();
 
 app.use(express.json());
+//all the routes are defined and used
 app.use('/employees', employeeRoutes);
 app.use('/uploadcsv', csvuploadRoute);
 app.use('/schedule', scheduleRoute);

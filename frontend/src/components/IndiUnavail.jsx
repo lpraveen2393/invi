@@ -5,6 +5,11 @@ import "react-datepicker/dist/react-datepicker.css";
 import api from '../services/api';
 import "../styles/home.css"
 
+/*
+used to update the unavailability of an employee
+uses date-picker to select the dates
+and the dates starts only from today .
+*/
 const Home = () => {
     const [selectedEmployee, setSelectedEmployee] = useState('');
     const [unavailableDates, setUnavailableDates] = useState([]);
