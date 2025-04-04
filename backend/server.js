@@ -5,7 +5,7 @@ const employeeRoutes = require('./routes/employees');
 const csvuploadRoute = require('./routes/csvuploads');
 const scheduleRoute = require('./routes/schedule');
 const DbPopulate = require('./routes/dbpopulate');
-
+const ReAssign = require('./routes/reassign');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -24,4 +24,5 @@ app.use('/employees', employeeRoutes);
 app.use('/uploadcsv', csvuploadRoute);
 app.use('/schedule', scheduleRoute);
 app.use('/dbpopulate', DbPopulate);
+app.use('/reassign', ReAssign);
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
