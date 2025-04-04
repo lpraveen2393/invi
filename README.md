@@ -63,13 +63,9 @@ Invi is a web application designed to allocate exam duties for staff members eff
    - Create the database and collections.  
    - Upload employee data from `dbpopulate.csv`.
 
-2. **Single Employee Updates (`/home`):**  
-   - Allows an individual employee to update their unavailable dates.  
-   - URL: `http://localhost:3000/home`
-
-3. **Bulk Employee Updates (`/csv`):**  
-   - Upload a CSV file (`unavailabledates(csv page).csv`) to update unavailable dates for multiple employees.  
-   - URL: `http://localhost:3000/csv`
+2. **Bulk Employee Updates (`/unavailable`):**  
+   - Upload a CSV file (`unavailableDates.csv`) to update unavailable dates for multiple employees.  
+   - URL: `http://localhost:3000/unavailable`
 
 4. **COE Exam Schedule Updates (`/coe`):**  
    - Update the exam schedule using a CSV file (`examDuties.csv`) provided by the COE.  
@@ -87,7 +83,8 @@ Invi is a web application designed to allocate exam duties for staff members eff
 
 ## Outputs
 
-- `date_wise_duty.csv`: Duties assigned based on date.
-- `staff_wise_duty.csv`: Duties assigned per staff member.
-- `day_wise_duty.csv`: Final report template according to COE requirements.
+- `examDuties date.csv`: Duties assigned based on date.
+- `faculty_summary.csv`: Duties assigned per staff member.
+- `final_report.csv`: Final report template according to COE requirements.
+-  `individual_staff_duties.csv`: Duties assigned per staff member in order.
 
